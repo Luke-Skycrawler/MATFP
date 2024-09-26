@@ -43,10 +43,10 @@ if(NOT TARGET spdlog::spdlog)
 endif()
 
 # libigl
-if(NOT TARGET igl::core)
-	matfp_download_libigl()
-	find_package(LIBIGL REQUIRED)
-endif()
+# if(NOT TARGET igl::core)
+# 	matfp_download_libigl()
+# 	find_package(LIBIGL REQUIRED)
+# endif()
 
 # CL11
 if(NOT TARGET CLI11::CLI11)

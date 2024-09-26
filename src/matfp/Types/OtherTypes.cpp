@@ -180,6 +180,7 @@ bool TangentPlane::clear() {
   extrude_ratio = -1;
   fid = -1;
   energy = DBL_MAX;
+  return true;
 }
 
 bool TangentPlane::is_same_normal(const Vector3& bnormal,

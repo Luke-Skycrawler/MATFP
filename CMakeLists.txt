@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
+project(MATFP C CXX)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
-add_definitions(-w -Wno-dev)
+add_definitions(-w)
 
 # macos
 if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Darwin")
@@ -17,28 +19,9 @@ option(AUTO_DOWNLOAD "Auto download dependencies" ON)
 # ###############################################################################
 # matfp
 option(MATFP_WITH_HUNTER "Use Hunter to download and configure Boost" OFF)
-
-# libigl library
-option(LIBIGL_USE_STATIC_LIBRARY "Use libigl as static library" OFF)
-option(LIBIGL_WITH_ANTTWEAKBAR "Use AntTweakBar" OFF)
-option(LIBIGL_WITH_CGAL "Use CGAL" ON)
-option(LIBIGL_WITH_COMISO "Use CoMiso" OFF)
-option(LIBIGL_WITH_CORK "Use Cork" OFF)
-option(LIBIGL_WITH_LIM "Use LIM" OFF)
-option(LIBIGL_WITH_MATLAB "Use Matlab" OFF)
-option(LIBIGL_WITH_MOSEK "Use MOSEK" OFF)
-option(LIBIGL_WITH_PNG "Use PNG" OFF)
-option(LIBIGL_WITH_PYTHON "Use Python" OFF)
-option(LIBIGL_WITH_TETGEN "Use Tetgen" OFF)
-option(LIBIGL_WITH_TRIANGLE "Use Triangle" OFF)
-option(LIBIGL_WITH_XML "Use XML" OFF)
-
-# gui
-option(LIBIGL_WITH_EMBREE "Use Embree" OFF)
-option(LIBIGL_WITH_NANOGUI "Use Nanogui menu" OFF)
-option(LIBIGL_WITH_OPENGL "Use OpenGL" OFF)
-option(LIBIGL_WITH_OPENGL_GLFW "Use GLFW" OFF)
-option(LIBIGL_WITH_VIEWER "Use OpenGL viewer" OFF)
+include(libigl)
+igl_include(copyleft cgal)
+igl_include(copyleft core)
 
 # geogram
 option(GEOGRAM_WITH_TRIANGLE "Use Triangle" OFF)
@@ -46,7 +29,6 @@ option(GEOGRAM_WITH_TRIANGLE "Use Triangle" OFF)
 # ###############################################################################
 # Project name
 # ###############################################################################
-project(MATFP)
 
 # ###############################################################################
 # Configure the compiler (after project)
@@ -248,15 +230,16 @@ target_include_directories(libMATFP
 target_link_libraries(libMATFP
 	PUBLIC
 	geogram
-	igl::core
+	igl_copyleft::core
 	spdlog::spdlog
 	polyscope
 	PRIVATE
-	igl::cgal
+	igl_copyleft::cgal
 	warnings::all
 )
 
-set_target_properties(libMATFP PROPERTIES OUTPUT_NAME "matfp")
+
+	set_target_properties(libMATFP PROPERTIES OUTPUT_NAME "matfp")
 target_link_libraries(libMATFP PRIVATE OpenGL::GLU)
 
 # ###############################################################################
@@ -268,11 +251,11 @@ add_executable(MATFP src/main.cpp)
 target_link_libraries(MATFP
 	libMATFP
 	CLI11::CLI11
-	igl::cgal
+	igl_copyleft::cgal
 	warnings::all
 )
 target_include_directories(MATFP PRIVATE src)
-igl_copy_cgal_dll(MATFP)
+# igl_copy_cgal_dll(MATFP)
 
 # Install
 install(TARGETS MATFP RUNTIME DESTINATION bin)
@@ -295,7 +278,7 @@ target_include_directories(libMATFP_PRE PUBLIC include)
 target_link_libraries(libMATFP_PRE
 	PUBLIC
 	geogram
-	igl::core
+	igl_copyleft::core
 	spdlog::spdlog
 	polyscope
 	PRIVATE

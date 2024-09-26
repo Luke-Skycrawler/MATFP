@@ -284,6 +284,7 @@ int NonManifoldMesh::clear_all_tets() {
   for (int fid = 0; fid < numFaces; fid++) {
     faces[fid].second->tets_.clear();
   }
+  return 0;
 }
 
 bool NonManifoldMesh::delete_edge(const int eid) {
@@ -613,8 +614,8 @@ void NonManifoldMesh::compute_face_simple_triangles(int fid) {
   }
 
   SimpleTriangle st0, st1;
-  Vector3 pos[k];
-  double radius[k];
+  vector<Vector3> pos(k);
+  vector<double> radius(k);
   int count = 0;
 
   for (std::set<int>::iterator si = faces[fid].second->vertices_.begin();
@@ -997,7 +998,7 @@ void MatIO::export_ma_given(const std::string& maname,
   for (int i = 0; i < mat_faces.size(); i++) {
     const auto& mat_f = mat_faces[i];
     fout << "f";
-    for (uint v = 0; v < 3; v++) fout << " " << mat_f[v];
+    for (unsigned int  v = 0; v < 3; v++) fout << " " << mat_f[v];
     fout << std::endl;
   }
   fout.close();
@@ -1028,7 +1029,7 @@ void MatIO::get_mat_clean(const NonManifoldMesh& mat,
     const auto& face = *mat.faces[f].second;
     if (face.is_deleted) continue;
     std::array<int, 3> one_f;
-    for (uint j = 0; j < 3; j++) {
+    for (unsigned int  j = 0; j < 3; j++) {
       int vid = get_vertex_mapped_id(*std::next(face.vertices_.begin(), j));
       one_f[j] = vid;
     }
