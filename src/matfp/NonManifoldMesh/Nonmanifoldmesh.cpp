@@ -972,10 +972,10 @@ void MatIO::export_ma_given(const std::string& maname,
                             bool is_use_given_name) {
   std::string ma_name_full = maname;
   if (!is_use_given_name)
-    ma_name_full = "../out/mat/mat_" + maname + "_" + get_timestamp() + ".ma";
+    ma_name_full = "../out/mat/mat_" + maname + ".ma";
 
   std::ofstream fout;
-  fout.open(ma_name_full, std::ofstream::out | std::ofstream::app);  //   append
+  fout.open(ma_name_full, std::ofstream::out | std::ofstream::trunc);  //   append
   fout << mat_vertices.size() << " " << mat_edges.size() << " "
        << mat_faces.size() << std::endl;
 
@@ -990,7 +990,7 @@ void MatIO::export_ma_given(const std::string& maname,
   //  save edges
   for (int i = 0; i < mat_edges.size(); i++) {
     const auto& mat_e = mat_edges[i];
-    fout << "e " << mat_e[0] << " " << mat_e[1];
+    fout << "e " << mat_e[0] - 1 << " " << mat_e[1] - 1;
     fout << std::endl;
   }
 
@@ -998,7 +998,7 @@ void MatIO::export_ma_given(const std::string& maname,
   for (int i = 0; i < mat_faces.size(); i++) {
     const auto& mat_f = mat_faces[i];
     fout << "f";
-    for (unsigned int  v = 0; v < 3; v++) fout << " " << mat_f[v];
+    for (unsigned int  v = 0; v < 3; v++) fout << " " << mat_f[v] - 1;
     fout << std::endl;
   }
   fout.close();
@@ -1073,20 +1073,20 @@ void MatIO::get_mat_clean(const NonManifoldMesh& mat,
  * e v1 v2
  * f v1 v2 v3
  */
-void MatIO::export_ma_clean(const std::string& maname,
-                            const NonManifoldMesh& mat) {
-  std::string ma_name_full =
-      "../out/mat/mat_" + maname + "_" + get_timestamp() + ".ma";
-  printf("start saving mat .m file: %s \n", ma_name_full.c_str());
+// void MatIO::export_ma_clean(const std::string& maname,
+//                             const NonManifoldMesh& mat) {
+//   std::string ma_name_full =
+//       "../out/mat/mat_" + maname + "_" + ".ma";
+//   printf("start saving mat .m file: %s \n", ma_name_full.c_str());
 
-  std::vector<Vector4> vertices;
-  std::vector<std::array<int, 2>> edges;
-  std::vector<std::array<int, 3>> faces;
-  get_mat_clean(mat, vertices, edges, faces);
+//   std::vector<Vector4> vertices;
+//   std::vector<std::array<int, 2>> edges;
+//   std::vector<std::array<int, 3>> faces;
+//   get_mat_clean(mat, vertices, edges, faces);
 
-  // export
-  export_ma_given(maname, vertices, edges, faces);
-}
+//   // export
+//   export_ma_given(maname, vertices, edges, faces);
+// }
 
 // this export is matching blender addon
 // https://github.com/songshibo/blender-mat-addon
@@ -1158,18 +1158,158 @@ void MatIO::export_nmm(const std::string& maname, const NonManifoldMesh& mat) {
 }
 
 // some vertices/faces are deleted
-void MatIO::write_nmm_ply(const std::string& maname,
+void MatIO::export_ma_clean(const std::string& maname,
                           const NonManifoldMesh& mat) {
-  // std::string ma_name_full =
-  // "../out/mat/mat_" + maname + "_" + get_timestamp() + ".ply";
-  std::string ma_name_full = "../out/mat/mat_" + maname + ".ply";
-  logger().debug("start saving mat .ply file: {}", ma_name_full);
+  std::string ma_name_full = "../out/mat/mat_" + maname + ".ma";
+  logger().debug("start saving mat .ma file: {}", ma_name_full);
 
   std::map<int, int> map_vertices;  // mat vertex tag to new ply
   int num_vertices = 0;
   int num_edges = 0;
   int num_faces = 0;
   std::vector<Vector3> vertices;
+  std::vector<float> radius;
+  std::vector<std::array<int, 2>> edges;
+  std::vector<std::array<int, 3>> faces;
+
+  auto get_vertex_mapped_id = [&](const int vid) {
+    if (map_vertices.find(vid) == map_vertices.end()) {
+      map_vertices[vid] = num_vertices;
+      num_vertices++;
+    }
+    return map_vertices.at(vid);
+  };
+
+  for (int f = 0; f < mat.faces.size(); f++) {
+    const auto& face = *(mat.faces[f].second);
+    if (face.is_deleted) continue;
+    num_faces++;
+    int j = 0;
+    std::array<int, 3> one_f;
+    for (auto si = face.vertices_.cbegin(); si != face.vertices_.cend();
+         si++, j++) {
+      int vid = get_vertex_mapped_id(*si);
+      one_f[j] = vid;
+    }
+    faces.push_back(one_f);
+  }
+  logger().debug("faces: {}", num_faces);
+
+  for (int e = 0; e < mat.edges.size(); e++) {
+    const auto& edge = *(mat.edges[e].second);
+    if (edge.is_deleted) continue;
+    num_edges++;
+    int vid1 = get_vertex_mapped_id(edge.vertices_.first);
+    int vid2 = get_vertex_mapped_id(edge.vertices_.second);
+    edges.push_back({{vid1, vid2}});
+  }
+  logger().debug("edges: {}", num_edges);
+
+  vertices.resize(map_vertices.size());
+  radius.resize(map_vertices.size());
+  for (int v = 0; v < mat.vertices.size(); v++) {
+    auto& vertex = *(mat.vertices[v].second);
+    if (vertex.is_deleted) continue;
+    int vid = get_vertex_mapped_id(vertex.tag);
+    if (vid == vertices.size()) {
+      vertices.push_back(vertex.pos);
+      radius.push_back(vertex.radius);
+    } else {
+      vertices[vid] = vertex.pos;
+      radius[vid] = vertex.radius;
+    }
+  }
+  logger().debug("vertcies: {}", num_vertices);
+
+  MatrixXs V(num_vertices, 3);
+  Eigen::MatrixXi E(num_edges, 2);
+  Eigen::MatrixXi F(num_faces, 3);
+  for (int v = 0; v < num_vertices; v++) {
+    V(v, 0) = vertices[v][0];
+    V(v, 1) = vertices[v][1];
+    V(v, 2) = vertices[v][2];
+  }
+  for (int e = 0; e < num_edges; e++) {
+    E(e, 0) = edges[e][0];
+    E(e, 1) = edges[e][1];
+  }
+  for (int f = 0; f < num_faces; f++) {
+    F(f, 0) = faces[f][0];
+    F(f, 1) = faces[f][1];
+    F(f, 2) = faces[f][2];
+  }
+  // igl::writePLY(ma_name_full, V, F, E, igl::FileEncoding::Ascii);
+
+  std::ofstream fout;
+  fout.open(ma_name_full, std::ofstream::out | std::ofstream::trunc);  //   append
+  fout << V.rows() << " " << E.rows() << " "
+       << F.rows() << std::endl;
+
+  // save vertices
+  for (int i = 0; i < V.rows(); i++) {
+    const auto& mat_v = vertices[i];
+    fout << "v " << std::setiosflags(std::ios::fixed) << std::setprecision(15)
+         << mat_v[0] << " " << mat_v[1] << " " << mat_v[2] << " " << radius[i];
+    fout << std::endl;
+  }
+
+  //  save edges
+  for (int i = 0; i < E.rows(); i++) {
+    fout << "e " << E(i, 0) << " " << E(i, 1);
+    fout << std::endl;
+  }
+
+  // save faces
+  for (int i = 0; i < F.rows(); i++) {
+    Vector3i mat_f = F.row(i);
+    fout << "f";
+    for (unsigned int  v = 0; v < 3; v++) fout << " " << mat_f[v];
+    fout << std::endl;
+  }
+  fout.close();
+
+  printf("saved mat at: %s \n", ma_name_full.c_str());
+
+}
+
+void writePLY(const std::string &maname, const MatrixXs &V, const Eigen::MatrixXi &F, const Eigen::MatrixXi &E) {
+  FILE* f = fopen(maname.c_str(), "w");
+  fprintf(f, "ply\n");
+  fprintf(f, "format ascii 1.0\n");
+  fprintf(f, "element vertex %d\n", V.rows());
+  fprintf(f, "property double x\n");
+  fprintf(f, "property double y\n");
+  fprintf(f, "property double z\n");
+  fprintf(f, "property double r\n");
+  fprintf(f, "element face %d\n", E.rows() + F.rows());
+  fprintf(f, "property list uchar int vertex_index\n");
+  fprintf(f, "end_header\n");
+  for (int i = 0; i < V.rows(); i++) {
+    fprintf(f, "%f %f %f %f\n", V(i, 0), V(i, 1), V(i, 2), V(i, 3));
+  }
+  for (int i = 0; i < F.rows(); i++) {
+    fprintf(f, "3 %d %d %d\n", F(i, 0), F(i, 1), F(i, 2));
+  }
+  for (int i = 0; i < E.rows(); i ++) {
+    fprintf(f, "2 %d %d\n", E(i, 0), E(i, 1));
+  }
+  fclose(f);
+  logger().debug("doen saving ply file");
+
+}
+void MatIO::write_nmm_ply(const std::string& maname,
+                          const NonManifoldMesh& mat) {
+  // std::string ma_name_full =
+  // "../out/mat/mat_" + maname + "_" + get_timestamp() + ".ply";
+  std::string ma_name_full = "../out/mat/mat_" + maname + ".ply";
+  // std::string ma_name_full = "../out/mat/mat_" + maname + ".ma";
+  logger().debug("start saving mat .ply file: {}", ma_name_full);
+
+  std::map<int, int> map_vertices;  // mat vertex tag to new ply
+  int num_vertices = 0;
+  int num_edges = 0;
+  int num_faces = 0;
+  std::vector<Vector4> vertices;
   std::vector<std::array<int, 2>> edges;
   std::vector<std::array<int, 3>> faces;
 
@@ -1212,31 +1352,35 @@ void MatIO::write_nmm_ply(const std::string& maname,
     if (vertex.is_deleted) continue;
     int vid = get_vertex_mapped_id(vertex.tag);
     if (vid == vertices.size()) {
-      vertices.push_back(vertex.pos);
+      vertices.push_back({vertex.pos[0], vertex.pos[1], vertex.pos[2], vertex.radius});
     } else {
-      vertices[vid] = vertex.pos;
+      vertices[vid] = {vertex.pos[0], vertex.pos[1], vertex.pos[2], vertex.radius};
     }
   }
   logger().debug("vertcies: {}", num_vertices);
 
-  MatrixXs V(num_vertices, 3);
+  MatrixXs V(num_vertices, 4);
   Eigen::MatrixXi E(num_edges, 2);
   Eigen::MatrixXi F(num_faces, 3);
   for (int v = 0; v < num_vertices; v++) {
     V(v, 0) = vertices[v][0];
     V(v, 1) = vertices[v][1];
     V(v, 2) = vertices[v][2];
+    V(v, 2) = vertices[v][3];
   }
   for (int e = 0; e < num_edges; e++) {
     E(e, 0) = edges[e][0];
-    E(e, 1) = edges[e][1];
+    E(e, 1) = edges[e][1]; 
   }
   for (int f = 0; f < num_faces; f++) {
     F(f, 0) = faces[f][0];
     F(f, 1) = faces[f][1];
     F(f, 2) = faces[f][2];
   }
-  igl::writePLY(ma_name_full, V, F, E);
+  MatrixXs VV = V.leftCols(3);
+  igl::writePLY(ma_name_full, VV, F, igl::FileEncoding::Ascii); 
+  // igl::writePLY(ma_name_full, V, F, E, igl::FileEncoding::Ascii);
+  // writePLY(ma_name_full, V, F, E);
 }
 
 void MatIO::export_nmm_vs(const std::string& maname,

@@ -19,9 +19,10 @@ option(AUTO_DOWNLOAD "Auto download dependencies" ON)
 # ###############################################################################
 # matfp
 option(MATFP_WITH_HUNTER "Use Hunter to download and configure Boost" OFF)
-include(libigl)
-igl_include(copyleft cgal)
-igl_include(copyleft core)
+# include(libigl)
+# igl_include(copyleft cgal)
+# igl_include(copyleft core)
+find_package(libigl REQUIRED)
 
 # geogram
 option(GEOGRAM_WITH_TRIANGLE "Use Triangle" OFF)
@@ -124,7 +125,8 @@ find_package(GLUT REQUIRED)
 # MATFP
 # ###############################################################################
 # Build static library for executable
-add_library(libMATFP
+add_executable(libMATFP
+	src/main.cpp
 	include/matfp/Args.h
 	include/matfp/Logger.h
 	src/matfp/Common.cpp
@@ -230,12 +232,13 @@ target_include_directories(libMATFP
 target_link_libraries(libMATFP
 	PUBLIC
 	geogram
-	igl_copyleft::core
+	igl::igl_core
 	spdlog::spdlog
 	polyscope
 	PRIVATE
-	igl_copyleft::cgal
+	igl_copyleft::igl_copyleft_cgal
 	warnings::all
+	CLI11::CLI11
 )
 
 
@@ -247,18 +250,18 @@ target_link_libraries(libMATFP PRIVATE OpenGL::GLU)
 # ###############################################################################
 
 # Building executable
-add_executable(MATFP src/main.cpp)
-target_link_libraries(MATFP
-	libMATFP
-	CLI11::CLI11
-	igl_copyleft::cgal
-	warnings::all
-)
-target_include_directories(MATFP PRIVATE src)
-# igl_copy_cgal_dll(MATFP)
+# add_executable(MATFP src/main.cpp)
+# target_link_libraries(MATFP
+# 	libMATFP
+# 	CLI11::CLI11
+# 	igl_copyleft::igl_copyleft_cgal
+# 	warnings::all
+# )
+# target_include_directories(MATFP PRIVATE src)
+# # igl_copy_cgal_dll(MATFP)
 
-# Install
-install(TARGETS MATFP RUNTIME DESTINATION bin)
+# # Install
+# install(TARGETS MATFP RUNTIME DESTINATION bin)
 
 # ###############################################################################
 # MATFP preprocess binary
@@ -278,7 +281,7 @@ target_include_directories(libMATFP_PRE PUBLIC include)
 target_link_libraries(libMATFP_PRE
 	PUBLIC
 	geogram
-	igl_copyleft::core
+	igl::igl_core
 	spdlog::spdlog
 	polyscope
 	PRIVATE

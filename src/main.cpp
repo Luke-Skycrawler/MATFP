@@ -75,6 +75,6 @@ int main(int argc, char *argv[]) {
   gui.show();
 
   // will shutdown when program terminates
-  // GEO::terminate();
+   GEO::terminate();
   return 0;
 }
