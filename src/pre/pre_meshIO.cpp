@@ -178,6 +178,8 @@ void normalize_mesh(const GEO::Mesh& mesh, std::vector<Vector3>& points,
   double ycenter = (max[1] + min[1]) * 0.5;
   double zcenter = (max[2] + min[2]) * 0.5;
 
+  size = 1.0;
+  xcenter = ycenter = zcenter = 0.0;
   points.clear();
   points.resize(mesh.vertices.nb());
   for (size_t i = 0; i < points.size(); i++)
