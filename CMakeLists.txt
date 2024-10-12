@@ -5,7 +5,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
 add_definitions(-w)
-
+find_package(pybind11 REQUIRED)
 # macos
 if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Darwin")
 	set(MACOSX TRUE)
@@ -125,95 +125,97 @@ find_package(GLUT REQUIRED)
 # MATFP
 # ###############################################################################
 # Build static library for executable
+set(SOURCES 	include/matfp/Args.h
+include/matfp/Logger.h
+src/matfp/Common.cpp
+src/matfp/Common.h
+src/matfp/Logger.cpp
+
+src/matfp/geogram/predicates.cpp
+src/matfp/geogram/predicates.h
+src/matfp/geogram/mesh/mesh_sampling.h
+
+src/matfp/geogram/RPD.cpp
+src/matfp/geogram/RPD.h
+src/matfp/geogram/generic_RPD.h
+src/matfp/geogram/generic_RPD_vertex.h
+src/matfp/geogram/generic_RPD_polygon.cpp
+src/matfp/geogram/generic_RPD_polygon.h
+src/matfp/geogram/generic_RPD_cell.cpp
+src/matfp/geogram/generic_RPD_cell.h
+src/matfp/geogram/generic_RPD_utils.h
+src/matfp/geogram/RPD_mesh_builder.cpp
+src/matfp/geogram/RPD_mesh_builder.h
+src/matfp/geogram/RPD_callback.cpp
+src/matfp/geogram/RPD_callback.h
+
+src/matfp/NonManifoldMesh/Nonmanifoldmesh.cpp
+src/matfp/NonManifoldMesh/Nonmanifoldmesh.h
+src/matfp/NonManifoldMesh/Primitives.cpp
+src/matfp/NonManifoldMesh/Primitives.h
+
+src/matfp/MeshProcessor.cpp
+src/matfp/MeshProcessor.h
+src/matfp/LinearAlgebra/Wm4Math.cpp
+src/matfp/LinearAlgebra/Wm4Math.h
+src/matfp/LinearAlgebra/Wm4Matrix.cpp
+src/matfp/LinearAlgebra/Wm4Matrix.h
+src/matfp/LinearAlgebra/Wm4Vector.cpp
+src/matfp/LinearAlgebra/Wm4Vector.h
+src/matfp/GeometryObjects/GeometryObjects.cpp
+src/matfp/GeometryObjects/GeometryObjects.h
+src/matfp/GuiWindow.cpp
+src/matfp/GuiWindow.h
+src/matfp/ThreeDimensionalShape.cpp
+src/matfp/ThreeDimensionalShape.h
+src/matfp/WindingFilter.cpp
+src/matfp/WindingFilter.h
+src/matfp/AABBWrapper.cpp
+src/matfp/AABBWrapper.h
+src/matfp/MeshIO.cpp
+src/matfp/MeshIO.h
+src/matfp/external/predicates.c
+src/matfp/external/Predicates.hpp
+src/matfp/external/Predicates.cpp
+src/matfp/external/FastWindingNumber.hpp
+src/matfp/external/FastWindingNumber.cpp
+src/matfp/external/WindingNumber.h
+src/matfp/Parameters.h
+src/matfp/RPDGenerator.cpp
+src/matfp/RPDGenerator.h
+src/matfp/Triangulation.h
+src/matfp/Triangulation.cpp
+src/matfp/InscribedSpheres.h
+src/matfp/InscribedSpheres.cpp
+src/matfp/Types/DelaunayTriangulation.h
+src/matfp/Types/RegularTriangulation.h
+src/matfp/Types/CommonTypes.h
+src/matfp/Types/OtherTypes.h
+src/matfp/Types/OtherTypes.cpp
+src/matfp/MedialMeshGenerator.cpp
+src/matfp/MedialMeshGenerator.h
+src/matfp/Thinning.cpp
+src/matfp/Thinning.h
+src/matfp/UpdateSpheres.cpp
+src/matfp/UpdateSpheres.h
+src/matfp/ShrinkSpheres.cpp
+src/matfp/ShrinkSpheres.h
+src/matfp/IterateSpheres.cpp
+src/matfp/IterateSpheres.h
+src/matfp/FeaturePreservation.h
+src/matfp/FeaturePreservation.cpp
+src/matfp/InternalFeatureAddition.h
+src/matfp/InternalFeatureAddition.cpp
+src/matfp/MedialSpheresProcessor.h
+src/matfp/MedialSpheresProcessor.cpp
+src/matfp/LFS.h
+src/matfp/LFS.cpp
+src/matfp/MeshFeatureProcessor.h
+src/matfp/MeshFeatureProcessor.cpp
+)
 add_executable(libMATFP
 	src/main.cpp
-	include/matfp/Args.h
-	include/matfp/Logger.h
-	src/matfp/Common.cpp
-	src/matfp/Common.h
-	src/matfp/Logger.cpp
-
-	src/matfp/geogram/predicates.cpp
-	src/matfp/geogram/predicates.h
-	src/matfp/geogram/mesh/mesh_sampling.h
-
-	src/matfp/geogram/RPD.cpp
-	src/matfp/geogram/RPD.h
-	src/matfp/geogram/generic_RPD.h
-	src/matfp/geogram/generic_RPD_vertex.h
-	src/matfp/geogram/generic_RPD_polygon.cpp
-	src/matfp/geogram/generic_RPD_polygon.h
-	src/matfp/geogram/generic_RPD_cell.cpp
-	src/matfp/geogram/generic_RPD_cell.h
-	src/matfp/geogram/generic_RPD_utils.h
-	src/matfp/geogram/RPD_mesh_builder.cpp
-	src/matfp/geogram/RPD_mesh_builder.h
-	src/matfp/geogram/RPD_callback.cpp
-	src/matfp/geogram/RPD_callback.h
-
-	src/matfp/NonManifoldMesh/Nonmanifoldmesh.cpp
-	src/matfp/NonManifoldMesh/Nonmanifoldmesh.h
-	src/matfp/NonManifoldMesh/Primitives.cpp
-	src/matfp/NonManifoldMesh/Primitives.h
-
-	src/matfp/MeshProcessor.cpp
-	src/matfp/MeshProcessor.h
-	src/matfp/LinearAlgebra/Wm4Math.cpp
-	src/matfp/LinearAlgebra/Wm4Math.h
-	src/matfp/LinearAlgebra/Wm4Matrix.cpp
-	src/matfp/LinearAlgebra/Wm4Matrix.h
-	src/matfp/LinearAlgebra/Wm4Vector.cpp
-	src/matfp/LinearAlgebra/Wm4Vector.h
-	src/matfp/GeometryObjects/GeometryObjects.cpp
-	src/matfp/GeometryObjects/GeometryObjects.h
-	src/matfp/GuiWindow.cpp
-	src/matfp/GuiWindow.h
-	src/matfp/ThreeDimensionalShape.cpp
-	src/matfp/ThreeDimensionalShape.h
-	src/matfp/WindingFilter.cpp
-	src/matfp/WindingFilter.h
-	src/matfp/AABBWrapper.cpp
-	src/matfp/AABBWrapper.h
-	src/matfp/MeshIO.cpp
-	src/matfp/MeshIO.h
-	src/matfp/external/predicates.c
-	src/matfp/external/Predicates.hpp
-	src/matfp/external/Predicates.cpp
-	src/matfp/external/FastWindingNumber.hpp
-	src/matfp/external/FastWindingNumber.cpp
-	src/matfp/external/WindingNumber.h
-	src/matfp/Parameters.h
-	src/matfp/RPDGenerator.cpp
-	src/matfp/RPDGenerator.h
-	src/matfp/Triangulation.h
-	src/matfp/Triangulation.cpp
-	src/matfp/InscribedSpheres.h
-	src/matfp/InscribedSpheres.cpp
-	src/matfp/Types/DelaunayTriangulation.h
-	src/matfp/Types/RegularTriangulation.h
-	src/matfp/Types/CommonTypes.h
-	src/matfp/Types/OtherTypes.h
-	src/matfp/Types/OtherTypes.cpp
-	src/matfp/MedialMeshGenerator.cpp
-	src/matfp/MedialMeshGenerator.h
-	src/matfp/Thinning.cpp
-	src/matfp/Thinning.h
-	src/matfp/UpdateSpheres.cpp
-	src/matfp/UpdateSpheres.h
-	src/matfp/ShrinkSpheres.cpp
-	src/matfp/ShrinkSpheres.h
-	src/matfp/IterateSpheres.cpp
-	src/matfp/IterateSpheres.h
-	src/matfp/FeaturePreservation.h
-	src/matfp/FeaturePreservation.cpp
-	src/matfp/InternalFeatureAddition.h
-	src/matfp/InternalFeatureAddition.cpp
-	src/matfp/MedialSpheresProcessor.h
-	src/matfp/MedialSpheresProcessor.cpp
-	src/matfp/LFS.h
-	src/matfp/LFS.cpp
-	src/matfp/MeshFeatureProcessor.h
-	src/matfp/MeshFeatureProcessor.cpp
+	${SOURCES}
 )
 
 # ###############################################################################
@@ -304,3 +306,25 @@ target_link_libraries(MATFP_PRE
 set_target_properties(geogram PROPERTIES FOLDER extern/geogram)
 set_target_properties(geogram_third_party PROPERTIES FOLDER extern/geogram)
 set_target_properties(uninstall PROPERTIES FOLDER extern/geogram)
+
+pybind11_add_module(pymatfp 
+	src/bindings.cpp
+	${SOURCES}
+)
+
+target_include_directories(pymatfp PRIVATE include src scr/pre)
+target_link_libraries(pymatfp PRIVATE libMATFP_PRE)
+target_link_libraries(pymatfp
+	PUBLIC
+	geogram
+	igl::igl_core
+	spdlog::spdlog
+	polyscope
+	PRIVATE
+	igl_copyleft::igl_copyleft_cgal
+	warnings::all
+	CLI11::CLI11
+)
+
+
+target_link_libraries(pymatfp PRIVATE OpenGL::GLU)

@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+pymatfp.egg-info/PKG-INFO
+pymatfp.egg-info/SOURCES.txt
+pymatfp.egg-info/dependency_links.txt
+pymatfp.egg-info/not-zip-safe
+pymatfp.egg-info/top_level.txt

@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: pymatfp
+Version: 0.0.1
+Summary: A test project using pybind11 and CMake
+Author: Haoyang Shi
+Author-email: haoyang.shi@utah.edu
+Requires-Python: >=3.7
+License-File: LICENSE
