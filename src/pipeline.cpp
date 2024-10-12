@@ -27,7 +27,6 @@
 #include "matfp/WindingFilter.h"
 
 using namespace std;
-namespace py = pybind11;
 using namespace matfp;
 using namespace pre_matfp;
 

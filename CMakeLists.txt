@@ -164,8 +164,8 @@ src/matfp/LinearAlgebra/Wm4Vector.cpp
 src/matfp/LinearAlgebra/Wm4Vector.h
 src/matfp/GeometryObjects/GeometryObjects.cpp
 src/matfp/GeometryObjects/GeometryObjects.h
-src/matfp/GuiWindow.cpp
-src/matfp/GuiWindow.h
+# src/matfp/GuiWindow.cpp
+# src/matfp/GuiWindow.h
 src/matfp/ThreeDimensionalShape.cpp
 src/matfp/ThreeDimensionalShape.h
 src/matfp/WindingFilter.cpp
@@ -215,6 +215,8 @@ src/matfp/MeshFeatureProcessor.cpp
 )
 add_executable(libMATFP
 	src/main.cpp
+	src/matfp/GuiWindow.cpp
+	src/matfp/GuiWindow.h
 	${SOURCES}
 )
 
@@ -244,7 +246,7 @@ target_link_libraries(libMATFP
 )
 
 
-	set_target_properties(libMATFP PROPERTIES OUTPUT_NAME "matfp")
+set_target_properties(libMATFP PROPERTIES OUTPUT_NAME "matfp")
 target_link_libraries(libMATFP PRIVATE OpenGL::GLU)
 
 # ###############################################################################
@@ -320,7 +322,6 @@ target_link_libraries(libpymat
 	geogram
 	igl::igl_core
 	spdlog::spdlog
-	polyscope
 	PRIVATE
 	igl_copyleft::igl_copyleft_cgal
 	warnings::all
