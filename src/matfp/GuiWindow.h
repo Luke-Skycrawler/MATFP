@@ -61,7 +61,11 @@ class GuiWindow {
                        const int& given_input_face_id);
 
   double given_thinning_thres = 0.3;
-
+  static void stage1();
+  static void stage2();
+  static void stage3();
+  static void stage4();
+  static void save_ma();
  public:
   /////////////
   // Debug

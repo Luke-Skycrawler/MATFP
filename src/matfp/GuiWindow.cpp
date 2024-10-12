@@ -126,12 +126,7 @@ void GuiWindow::show() {
   polyscope::show();
 }
 
-void GuiWindow::callbacks() {
-  igl::Timer timer;
-  timer.start();
-  ImGui::PushItemWidth(100);
-
-  if (ImGui::SmallButton("Stage1")) {
+void GuiWindow::stage1() {
     matfp::generate_lfs(*(instance_->m_shape3D), false /*is_debug*/);
     // instance_->show_LFS(instance_->m_shape3D);
     matfp::mesh_remesh_split_sharp_edges(*(instance_->m_shape3D),
@@ -147,11 +142,11 @@ void GuiWindow::callbacks() {
         instance_->m_shape3D->tan_cc_lines,
         instance_->m_shape3D->all_medial_spheres, instance_->args->cc_len_eps,
         instance_->args->cc_normal_eps);
-    logger().info("Stage1 took {}s", timer.getElapsedTimeInSec());
-  }
+    // logger().info("Stage1 took {}s", timer.getElapsedTimeInSec());
 
-  ImGui::SameLine();
-  if (ImGui::SmallButton("Stage2")) {
+}
+
+void GuiWindow::stage2() {
     matfp::shrink_spheres(
         instance_->m_shape3D->sf_mesh, instance_->m_shape3D->aabb_wrapper,
         instance_->m_shape3D->tan_cc_lines,
@@ -161,11 +156,11 @@ void GuiWindow::callbacks() {
                           instance_->m_shape3D->aabb_wrapper,
                           instance_->m_shape3D->all_medial_spheres,
                           false /*is_debug*/);
-    logger().info("Stage2 took {}s", timer.getElapsedTimeInSec());
-  }
+    // logger().info("Stage2 took {}s", timer.getElapsedTimeInSec());
 
-  ImGui::SameLine();
-  if (ImGui::SmallButton("Stage3")) {
+}
+
+void GuiWindow::stage3() {
     matfp::add_or_delete_for_se(
         instance_->m_shape3D->all_medial_spheres,
         instance_->m_shape3D->se_spheres,
@@ -194,12 +189,12 @@ void GuiWindow::callbacks() {
         false /*is_debug*/);
     instance_->show_mat_simple(instance_->m_shape3D->mat_refined,
                                RestrictedType::RPD);
-    logger().info("Stage3 took {}s", timer.getElapsedTimeInSec());
-  }
+    // logger().info("Stage3 took {}s", timer.getElapsedTimeInSec());
 
-  ImGui::SameLine();
-  if (ImGui::SmallButton("Stage4")) {
-    for (int i = 0; i < 2; i++) {
+}
+
+void GuiWindow::stage4() {
+      for (int i = 0; i < 2; i++) {
       matfp::check_invalid_mat_edges(
           instance_->m_shape3D->mat_refined,
           instance_->m_shape3D->valid_medial_spheres,
@@ -244,7 +239,41 @@ void GuiWindow::callbacks() {
     }
     instance_->show_mat_simple(instance_->m_shape3D->mat_refined,
                                RestrictedType::RPD);
-    logger().info("Stage4 took {}s", timer.getElapsedTimeInSec());
+    // logger().info("Stage4 took {}s", timer.getElapsedTimeInSec());
+
+}
+
+void GuiWindow::save_ma() {
+    MatIO::export_nmm(instance_->m_shape3D->mat_refined.mat_name,
+                      instance_->m_shape3D->mat_refined);
+    MatIO::export_ma_clean(instance_->m_shape3D->mat_refined.mat_name,
+                      instance_->m_shape3D->mat_refined);
+    logger().info("Saved MAT to {}.ma",
+                  instance_->m_shape3D->mat_refined.mat_name);
+
+}
+void GuiWindow::callbacks() {
+  igl::Timer timer;
+  timer.start();
+  ImGui::PushItemWidth(100);
+
+  if (ImGui::SmallButton("Stage1")) {
+    stage1();
+  }
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Stage2")) {
+    stage2();
+  }
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Stage3")) {
+    stage3();
+  }
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Stage4")) {
+    stage4();
   }
 
   // Prune / Thinning
@@ -309,14 +338,17 @@ void GuiWindow::callbacks() {
   }
   ImGui::SameLine();
   if (ImGui::SmallButton("save MAT .ma")) {
-    MatIO::export_nmm(instance_->m_shape3D->mat_refined.mat_name,
-                      instance_->m_shape3D->mat_refined);
-    MatIO::export_ma_clean(instance_->m_shape3D->mat_refined.mat_name,
-                      instance_->m_shape3D->mat_refined);
-    logger().info("Saved MAT to {}.ma",
-                  instance_->m_shape3D->mat_refined.mat_name);
+    save_ma();
   }
 
+
+  if (ImGui::SmallButton("process and save")) {
+    stage1();
+    stage2();
+    stage3();
+    stage4();
+    save_ma();
+  }
   ImGui::PopItemWidth();
 }
 

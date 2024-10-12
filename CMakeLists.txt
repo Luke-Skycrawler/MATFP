@@ -307,14 +307,15 @@ set_target_properties(geogram PROPERTIES FOLDER extern/geogram)
 set_target_properties(geogram_third_party PROPERTIES FOLDER extern/geogram)
 set_target_properties(uninstall PROPERTIES FOLDER extern/geogram)
 
-pybind11_add_module(pymatfp 
-	src/bindings.cpp
-	${SOURCES}
+#############################################
+add_library(libpymat 
+src/pipeline.cpp
+${SOURCES}
 )
 
-target_include_directories(pymatfp PRIVATE include src scr/pre)
-target_link_libraries(pymatfp PRIVATE libMATFP_PRE)
-target_link_libraries(pymatfp
+target_include_directories(libpymat PRIVATE include src scr/pre)
+target_link_libraries(libpymat PRIVATE libMATFP_PRE)
+target_link_libraries(libpymat
 	PUBLIC
 	geogram
 	igl::igl_core
@@ -324,7 +325,17 @@ target_link_libraries(pymatfp
 	igl_copyleft::igl_copyleft_cgal
 	warnings::all
 	CLI11::CLI11
+	OpenGL::GLU
+)
+#############################################
+add_executable(obj2ma src/obj2ma.cpp)
+target_link_libraries(obj2ma PRIVATE libpymat)
+
+#############################################
+pybind11_add_module(pymatfp 
+	src/bindings.cpp
 )
 
+# target_include_directories(pymatfp PRIVATE include src scr/pre)
+target_link_libraries(pymatfp PRIVATE libpymat)
 
-target_link_libraries(pymatfp PRIVATE OpenGL::GLU)

@@ -1,4 +1,6 @@
-
+#include <string> 
+#include <iostream>
+#include "matfp/Logger.h"
 #include "pre/pre_meshIO.h"
 #include "pre/sharp_feature_detection.h"
 #include "matfp/Args.h"
